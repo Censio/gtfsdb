@@ -117,6 +117,10 @@ class _Base(object):
                 yield cls.make_record(row, key_lookup, **kwargs)
             f.close()
 
+    @classmethod
+    def csv_load(cls, key_lookup, **kwargs):
+        for record in cls.parse_records(key_lookup, **kwargs):
+            print record
 
     @classmethod
     def insert_load(cls, db, key_lookup, **kwargs):
