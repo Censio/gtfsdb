@@ -29,7 +29,7 @@ class GTFS(object):
     @staticmethod
     def bootstrab_db(db):
         for cls in db.bootstrap_classes:
-            cls.load(db)
+            cls.insert_load(db)
 
     def load(self, db, **kwargs):
         '''Load GTFS into database'''
@@ -52,7 +52,7 @@ class GTFS(object):
         )
         futures = []
         for cls in db.sorted_classes(lambda k: k.datasource == config.DATASOURCE_GTFS):
-            futures += cls.load(db, **load_kwargs)
+            futures += cls.insert_load(db, **load_kwargs)
         shutil.rmtree(gtfs_directory)
 
         log.debug('GTFS.load: Done parsing, finishing upload')
@@ -76,7 +76,7 @@ class GTFS(object):
             batch_size=kwargs.get('batch_size', config.DEFAULT_BATCH_SIZE),
         )
         for cls in db.sorted_classes(lambda k: k.datasource == config.DATASOURCE_DERIVED):
-            cls.load(db, **load_kwargs)
+            cls.insert_load(db, **load_kwargs)
 
         process_time = time.time() - start_time
         log.debug('GTFS.load_derived ({0:.0f} seconds)'.format(process_time))

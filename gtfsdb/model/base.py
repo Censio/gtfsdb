@@ -119,7 +119,7 @@ class _Base(object):
 
 
     @classmethod
-    def load(cls, db, key_lookup, **kwargs):
+    def insert_load(cls, db, key_lookup, **kwargs):
         '''Load method for ORM
 
         arguments:

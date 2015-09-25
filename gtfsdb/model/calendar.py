@@ -89,7 +89,7 @@ class UniversalCalendar(Base):
         uselist=True, viewonly=True)
 
     @classmethod
-    def load(cls, db, **kwargs):
+    def insert_load(cls, db, **kwargs):
         start_time = time.time()
         session = db.session
         for c in session.query(Calendar):

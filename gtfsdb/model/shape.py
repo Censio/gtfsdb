@@ -61,7 +61,7 @@ class ShapeGeom(Base):
         return shape_geom
 
     @classmethod
-    def load(cls, db, **kwargs):
+    def insert_load(cls, db, **kwargs):
         start_time = time.time()
         session = db.get_session()
         shapes = cls.get_shape_list(session)

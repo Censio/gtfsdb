@@ -221,7 +221,7 @@ class RouteStop(Base):
         uselist=False, viewonly=True, lazy='joined')
 
     @classmethod
-    def load(cls, db, **kwargs):
+    def insert_load(cls, db, **kwargs):
         ''' for each route/direction, find list of stop_ids for route/direction pairs
 
             the load is a two part process, where part A finds a list of unique stop ids, and
