@@ -101,6 +101,24 @@ class _Base(object):
             log.warn("update_cached_data(): threw an exception with attribute {0}".format(attribute_name))
 
     @classmethod
+    def parse_records(cls, key_lookup, **kwargs):
+        directory = None
+        if cls.datasource == config.DATASOURCE_GTFS:
+            directory = kwargs.get('gtfs_directory')
+        elif cls.datasource == config.DATASOURCE_LOOKUP:
+            directory = resource_filename('gtfsdb', 'data')
+        file_path = os.path.join(directory, cls.filename)
+        if os.path.exists(file_path):
+            f = open(file_path, 'r')
+            utf8_file = util.UTF8Recoder(f, 'utf-8-sig')
+            reader = csv.DictReader(utf8_file)
+            reader.fieldnames = [field.strip().lower() for field in reader.fieldnames]
+            for row in reader:
+                yield cls.make_record(row, key_lookup, **kwargs)
+            f.close()
+
+
+    @classmethod
     def load(cls, db, key_lookup, **kwargs):
         '''Load method for ORM
 
@@ -114,39 +132,26 @@ class _Base(object):
         log = logging.getLogger(cls.__module__)
         start_time = time.time()
         batch_size = kwargs.get('batch_size', config.DEFAULT_BATCH_SIZE)
-        directory = None
-        if cls.datasource == config.DATASOURCE_GTFS:
-            directory = kwargs.get('gtfs_directory')
-        elif cls.datasource == config.DATASOURCE_LOOKUP:
-            directory = resource_filename('gtfsdb', 'data')
 
         if 'thread_pool' in kwargs.keys():
             thread_pool = kwargs.get('thread_pool')
         else:
             thread_pool = ThreadPoolExecutor(max_workers=1)
 
-        records = []
         futures = []
-        file_path = os.path.join(directory, cls.filename)
-        if os.path.exists(file_path):
-            f = open(file_path, 'r')
-            utf8_file = util.UTF8Recoder(f, 'utf-8-sig')
-            reader = csv.DictReader(utf8_file)
-            reader.fieldnames = [field.strip().lower() for field in reader.fieldnames]
-            table = cls.__table__
+        records = []
+        table = cls.__table__
 
-            i = 0
-            for row in reader:
-                record = cls.make_record(row, key_lookup, **kwargs)
-                records.append(record)
-                i += 1
-                if i >= batch_size:
-                    futures.append(thread_pool.submit(db.execute, table.insert(), records))
-                    records = []
-                    i = 0
-            if len(records) > 0:
+        i = 0
+        for record in cls.parse_records(key_lookup, **kwargs):
+            records.append(record)
+            i += 1
+            if i >= batch_size:
                 futures.append(thread_pool.submit(db.execute, table.insert(), records))
-            f.close()
+                records = []
+                i = 0
+        if len(records) > 0:
+            futures.append(thread_pool.submit(db.execute, table.insert(), records))
 
         if 'thread_pool' not in kwargs.keys():
             for future in futures:
