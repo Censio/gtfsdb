@@ -4,7 +4,7 @@ import traceback
 import sys
 from datetime import datetime
 from gtfsdb.model.metaTracking import FeedFile, GTFSExAgency
-
+from gtfsdb.import_api.gtfs_exchange import GTFSExchange
 log = logging.getLogger(__name__)
 
 def database_load(filename, db_url, file_id=None):
@@ -52,3 +52,14 @@ def create_shapes_geoms(db_url):
     db = Database(url=db_url, is_geospatial=True)
     gtfs = GTFS()
     gtfs.load_derived(db)
+
+def get_gtfs_feeds(session):
+    gtfs_api = GTFSExchange()
+    feeds = []
+    for feed in gtfs_api.get_gtfs_agencies(True):
+        if not feed['country'] == 'United States':
+            continue
+        details = gtfs_api.get_gtfs_agency_details(feed)['agency']
+        load_external_agencies(session, details)
+        feeds.append(FeedFile(**gtfs_api.get_most_recent_file(feed)['file']))
+    return feeds

@@ -68,7 +68,7 @@ class ShapeGeom(Base):
         for shape in shapes:
             shape_geom = cls.create_shape_geom(shape.shape_id, shape.dist, session)
             session.merge(shape_geom)
-        session.commit()
+            session.commit()
         session.close()
         processing_time = time.time() - start_time
         log.debug('{0}.load ({1:.0f} seconds)'.format(
