@@ -1,11 +1,16 @@
+import os
+import csv
+
 from sqlalchemy import Column, Index
 from sqlalchemy.types import String
 from sqlalchemy.orm import relationship
 
 from gtfsdb import config
+from gtfsdb import util
 from gtfsdb.model.base import Base
 from gtfsdb.model.feed_info import FeedInfo
 from gtfsdb.model.guuid import GUID
+
 
 
 class Agency(Base):
@@ -26,6 +31,22 @@ class Agency(Base):
 
     routes = relationship('Route', backref='agency', primaryjoin='Route.agency_id==Agency.agency_id',
                           foreign_keys='(Route.agency_id)', cascade='delete')
+
+    @classmethod
+    def load(cls, db, key_lookup, **kwargs):
+        file_path = os.path.join(kwargs.get('gtfs_directory'), cls.filename)
+        if os.path.exists(file_path):
+            f = open(file_path, 'r')
+            utf8_file = util.UTF8Recoder(f, 'utf-8-sig')
+            reader = csv.DictReader(utf8_file)
+            reader.fieldnames = [field.strip().lower() for field in reader.fieldnames]
+            agency_list = [row['agency_name'] for row in reader]
+            for agency in agency_list:
+                existing = db.session.query(cls).filter_by(agency_name=agency).all()
+                for existing_agency in existing:
+                    db.session.delete(existing_agency)
+                    db.session.commit()
+        return super(Agency, cls).load(db, key_lookup, **kwargs)
 
     @classmethod
     def make_record(cls, row, key_lookup, **kwargs):
