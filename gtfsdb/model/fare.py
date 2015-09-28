@@ -2,9 +2,12 @@ from sqlalchemy import Column, Sequence, Index
 from sqlalchemy.types import Integer, Numeric, String
 from sqlalchemy.orm import relationship
 
+import libuuid
+
 from gtfsdb import config
 from gtfsdb.model.base import Base
 from gtfsdb.model.guuid import GUID
+
 
 
 __all__ = ['FareAttribute', 'FareRule']
@@ -33,7 +36,7 @@ class FareRule(Base):
 
     __tablename__ = 'gtfs_fare_rules'
 
-    id = Column(Integer, Sequence(None, optional=True), primary_key=True, nullable=True)
+    id = Column(GUID(), default=libuuid.uuid4, primary_key=True, nullable=True)
     fare_id = Column(GUID(), nullable=False)
     route_id = Column(GUID(), nullable=False)
     origin_id = Column(GUID())

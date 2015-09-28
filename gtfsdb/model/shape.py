@@ -4,6 +4,7 @@ import time
 from geoalchemy2 import Geometry
 from sqlalchemy import Column, Integer, Numeric, String, Sequence, Index
 from sqlalchemy.orm import deferred, relationship
+import libuuid
 from sqlalchemy.sql import func
 
 from gtfsdb import config
@@ -81,7 +82,7 @@ class Shape(Base):
 
     __tablename__ = 'gtfs_shapes'
 
-    id = Column(Integer, Sequence(None, optional=True), primary_key=True, nullable=True)
+    id = Column(GUID(), default=libuuid.uuid4, primary_key=True, nullable=True)
     shape_id = Column(GUID(), nullable=False)
     shape_pt_lat = Column(Numeric(12, 9), nullable=False)
     shape_pt_lon = Column(Numeric(12, 9), nullable=False)

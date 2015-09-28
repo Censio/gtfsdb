@@ -9,6 +9,7 @@ from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.types import Integer, String
 from sqlalchemy.sql import func
 from geoalchemy2 import Geometry
+import libuuid
 
 from gtfsdb import config
 from gtfsdb.model.base import Base
@@ -161,7 +162,7 @@ class RouteDirection(Base):
 
     __tablename__ = 'gtfs_directions'
 
-    id = Column(Integer, Sequence(None, optional=True), primary_key=True, nullable=True)
+    id = Column(GUID(), default=libuuid.uuid4, primary_key=True, nullable=True)
     direction_id = Column(GUID(), nullable=False)
     route_id = Column(GUID(), nullable=False)
     direction_name = Column(String(255))
@@ -174,7 +175,7 @@ class RouteStop(Base):
 
     __tablename__ = 'route_stops'
 
-    id = Column(Integer, Sequence(None, optional=True), primary_key=True, nullable=True)
+    id = Column(GUID(), default=libuuid.uuid4, primary_key=True, nullable=True)
     route_id = Column(GUID(), nullable=False)
     direction_id = Column(GUID(), nullable=False)
     stop_id = Column(GUID(), nullable=False)
